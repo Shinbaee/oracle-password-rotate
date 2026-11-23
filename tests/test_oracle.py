@@ -151,6 +151,7 @@ def test_missing_account(user, monkeypatch, capsys):
 
 def test_wrong_service_is_unreachable(user, monkeypatch, capsys):
     monkeypatch.setenv("T_NEW", NEW)
+    monkeypatch.setenv("T_ADMIN", SYS_PW)
     assert cli.main(["--host", HOST, "--port", str(PORT), "--service", "NO_SUCH_SERVICE", "--account", "ROT_APP",
                      "--new-password-env", "T_NEW", "--admin-user", "SYSTEM", "--admin-password-env", "T_ADMIN"]) \
         == flow.UNREACHABLE
