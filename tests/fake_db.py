@@ -45,6 +45,10 @@ class FakeDB:
             raise DBError("DPY-6005", "DPY-6005: cannot connect to database")
         name = user[1:-1] if user.startswith('"') else user.upper()
         u = self.users.get(name)
+        if u is not None and u.locked:
+            # like Oracle 21c (checked in tests/test_oracle.py): the same answer for any password
+            self.attempts.append((name, False))
+            raise DBError("ORA-28000", "ORA-28000: The account is locked.")
         if u is None or u.password != password:
             if u is not None:
                 u.failures += 1
@@ -52,9 +56,6 @@ class FakeDB:
                     u.locked = True
             self.attempts.append((name, False))
             raise DBError("ORA-01017", "ORA-01017: invalid credential or not authorized; logon denied")
-        if u.locked:
-            self.attempts.append((name, False))
-            raise DBError("ORA-28000", "ORA-28000: The account is locked.")
         if not u.create_session:
             raise DBError("ORA-01045", "ORA-01045: Login denied. User lacks CREATE SESSION privilege.")
         u.failures = 0

@@ -146,9 +146,10 @@ def rotate(connect: Callable, req: Request, log: Callable[[str], None]) -> str:
         log("verify: new password signs in")
         return f"password of {name} changed and verified"
     if err.code in SESSION_REFUSED:
-        # the password was accepted and is in place; the database refuses the session for another reason
-        raise Failure(CANNOT_SIGN_IN, f"password changed, but {name} cannot sign in: "
-                                      f"{SESSION_REFUSED[err.code]} ({err.code})")
+        # ALTER USER went through, but the database refuses the session before it looks at the password
+        # (a locked account answers ORA-28000 to a wrong password too), so the new one is not verified.
+        raise Failure(CANNOT_SIGN_IN, f"ALTER USER succeeded, but {name} cannot sign in: "
+                                      f"{SESSION_REFUSED[err.code]} ({err.code}); new password not verified")
     if is_network(err.code) or err.code in TIMEOUTS:
         raise Failure(UNREACHABLE, f"password changed, but the verification could not connect: {err}")
     log(f"verify: new password refused ({err.code})")
