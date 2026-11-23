@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oracle-password-rotate"
+version = "0.1.0"
+description = "Change an Oracle account's password, then sign in as that account to prove it. Optional SSH tunnel."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["oracledb>=2.0", "paramiko>=3.0"]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.scripts]
+oracle-password-rotate = "oracle_password_rotate.cli:main"
+
+[tool.setuptools]
+packages = ["oracle_password_rotate"]
+
+[tool.pytest.ini_options]
+markers = ["user(locked, session): options for the fresh test account"]
