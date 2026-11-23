@@ -139,6 +139,21 @@ def test_locked_account_is_changed_but_cannot_sign_in(user, monkeypatch, capsys)
     assert status() == "LOCKED"  # the tool never unlocks
 
 
+@pytest.mark.user(locked=True)
+def test_locked_account_answers_differently_for_a_wrong_password(user):
+    """Recorded, not assumed: does ORA-28000 only come with the right password? If so, receiving it
+    after a change also proves the new password is in place."""
+    codes = {}
+    for label, pw in (("right", INITIAL), ("wrong", "Wrong-pass-00001")):
+        try:
+            oracledb.connect(user="rot_app", password=pw, dsn=DSN).close()
+            codes[label] = "signed in"
+        except oracledb.DatabaseError as e:
+            codes[label] = e.args[0].full_code
+    print("locked account answers:", codes)
+    assert codes == {"right": "ORA-28000", "wrong": "ORA-01017"}
+
+
 @pytest.mark.user(session=False)
 def test_no_create_session(user, monkeypatch, capsys):
     assert run(monkeypatch) == flow.CANNOT_SIGN_IN
